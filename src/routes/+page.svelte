@@ -6,5 +6,5 @@
 </p>
 <p>
     If you'd like to set a profile picture, <a href="/set">click here</a>.
-    If logged out, you will be redirected to the OAuth2 provider of this instance.
+    If logged out, you will be redirected to the <abbr title="OpenID Connect">OIDC</abbr> provider of this instance.
 </p>

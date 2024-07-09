@@ -1,6 +1,6 @@
 <script lang="ts">
     import "@fontsource-variable/inter";
-    export let data: { userid?: string };
+    export let data: { user?: { sub: string, username: string } };
 </script>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,7 +32,7 @@
         <nav>
             <a href="/">Home</a>
             <a href="/set">Set avatar</a>
-            {#if data.userid}
+            {#if data.user}
                 <a href="/logout">Log out</a>
             {/if}
         </nav>
