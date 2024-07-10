@@ -31,6 +31,7 @@
                 max-width: 35em;
                 margin: auto;
                 color: var(--text);
+                padding: 0 1em;
             }
             nav {
                 display: flex;
