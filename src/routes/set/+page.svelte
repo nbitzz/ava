@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { User } from "$lib/types";
 
-    export let data: {user: User};
+    export let data: {user: User, url: string};
 </script>
 
 <style>
@@ -30,12 +30,40 @@
     form > label {
         flex-shrink: 0;
     }
+    summary::marker {
+        content: ""
+    }
+    summary {
+        color: var(--link);
+        cursor:pointer;
+    }
+    details > div {
+        border-left: 0.25em solid var(--link);
+        padding-left: 1em;
+        overflow-x: auto;
+        background-color: var(--crust);
+        width: 100%;
+    }
 </style>
 
 <h1>Hi, {data.user.name}</h1>
 <p>
-    The <code>sub</code> claim is set to <code>{data.user.sub}</code>.
-    Your identifier is <code>{data.user.identifier}</code>.
+    <details>
+        <summary>View user information...</summary>
+        <div>
+            <pre>{JSON.stringify(data.user, null, 4)}</pre>
+        </div>
+    </details>
+    <details>
+        <summary>Avatar URLs...</summary>
+        <div>
+            <ul>
+                {#each ["", "32", "64", "128", "256", "512"] as variant}
+                    <li>{new URL(`/avatar/${data.user.identifier}/${variant}`, data.url)}</li>
+                {/each}
+            </ul>
+        </div>
+    </details>
 </p>
 <form method="post" enctype="multipart/form-data">
     <label for="newAvatar">Set a new avatar:</label>

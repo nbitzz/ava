@@ -57,7 +57,7 @@
             a {
                 color: var(--link)
             }
-            code {
+            code, pre {
                 font-family: "Space Mono", monospace, monospace;
             }
         </style>
