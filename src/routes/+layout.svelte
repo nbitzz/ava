@@ -1,5 +1,6 @@
 <script lang="ts">
     import "@fontsource-variable/inter";
+    import ava from "../assets/ava_icon.svg?raw"
     export let data: { user?: { sub: string, username: string } };
 </script>
 <!DOCTYPE html>
@@ -23,14 +24,26 @@
                 display: flex;
                 gap: 1em;
                 justify-content: center;
+                align-items: center;
                 margin: 1em 0;
+            }
+            svg {
+                width: .75em;
+                height: .75em;
+            }
+            nav svg {
+                width: 1.5em;
+                height: 1.5em;
+            }
+            nav > * {
+                display: flex; /* Flexbox fixes everything! */
             }
         </style>
     </head>
     <body>
 
         <nav>
-            <a href="/">Home</a>
+            <a href="/">{@html ava}</a>
             <a href="/set">Set avatar</a>
             {#if data.user}
                 <a href="/logout">Log out</a>

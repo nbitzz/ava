@@ -1,4 +1,7 @@
-<h1>Hi, welcome to ava</h1>
+<script lang="ts">
+    import ava from "../assets/ava_icon.svg?raw"
+</script>
+<h1>Welcome to {@html ava} ava</h1>
 <p>
     ava is a simple avatar server.
     Put an image in, get a few images out. That's it.
