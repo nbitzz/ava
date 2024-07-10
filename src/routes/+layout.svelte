@@ -13,7 +13,18 @@
         <style>
             :root {
                 --text: black;
+                --link: #333;
                 --background: white;
+            }
+            @media (prefers-color-scheme:dark) {
+                :root {
+                    --text: white;
+                    --link: #aaa;
+                    --background: #111;
+                }
+            }
+            html {
+                background: var(--background);
             }
             body {
                 font-family: "Inter Variable", "Inter", sans-serif;
@@ -38,6 +49,9 @@
             }
             nav > * {
                 display: flex; /* Flexbox fixes everything! */
+            }
+            a {
+                color: var(--link)
             }
         </style>
     </head>
