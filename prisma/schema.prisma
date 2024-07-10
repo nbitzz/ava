@@ -12,6 +12,7 @@ datasource db {
 
 model Token {
   id String @id @unique @default(uuid())
+  owner String
   token String
-  refreshToken String
+  refreshToken String?
 }

@@ -1,7 +1,8 @@
 <script lang="ts">
     import "@fontsource-variable/inter";
     import ava from "../assets/ava_icon.svg?raw"
-    export let data: { user?: { sub: string, username: string } };
+	import type { User } from "$lib/types";
+    export let data: { user?: User };
 </script>
 <!DOCTYPE html>
 <html lang="en">

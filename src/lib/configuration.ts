@@ -3,7 +3,7 @@ const configuration = {
         endpoints: {
             authenticate: process.env.OAUTH2__AUTHENTICATE,
             logout: process.env.OAUTH2__LOGOUT,
-            token: process.env.OAUTH2__TOKEN
+            token: process.env.OAUTH2__GET_TOKEN
         },
         client: {
             id: process.env.OAUTH2__CLIENT_ID,

@@ -1,7 +1,6 @@
 import {launchLogin} from "$lib"
 export async function load({ request, parent }) {
-    //const { user } = await parent();
-    let user = null
+    const { user } = await parent();
     if (!user)
         launchLogin(request)
 }
