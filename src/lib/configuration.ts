@@ -14,6 +14,7 @@ const configuration = {
     userinfo: {
         route: process.env.USERINFO__ROUTE,
         identifier: process.env.USERINFO__IDENTIFIER
-    }
+    },
+    allowed_types: process.env.ALLOWED_TYPES.split(",")
 }
 export default configuration
