@@ -1,5 +1,6 @@
 <script lang="ts">
     import "@fontsource-variable/inter";
+    import "@fontsource-variable/noto-sans-mono"
     import ava from "../assets/ava_icon.svg?raw"
 	import type { User } from "$lib/types";
     export let data: { user?: User };
@@ -15,12 +16,14 @@
                 --text: black;
                 --link: #333;
                 --background: white;
+                --crust: #eee;
             }
             @media (prefers-color-scheme:dark) {
                 :root {
                     --text: white;
                     --link: #aaa;
                     --background: #111;
+                    --crust: #333;
                 }
             }
             html {
@@ -53,6 +56,9 @@
             }
             a {
                 color: var(--link)
+            }
+            code {
+                font-family: "Space Mono", monospace, monospace;
             }
         </style>
     </head>

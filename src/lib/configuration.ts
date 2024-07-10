@@ -7,11 +7,13 @@ const configuration = {
         },
         client: {
             id: process.env.OAUTH2__CLIENT_ID,
-            secret: process.env.OAUTH2__CLIENT_SECRET
+            secret: process.env.OAUTH2__CLIENT_SECRET,
+            scopes: process.env.OAUTH2__SCOPES
         }
     },
     userinfo: {
-        route: process.env.USERINFO__ROUTE
+        route: process.env.USERINFO__ROUTE,
+        identifier: process.env.USERINFO__IDENTIFIER
     }
 }
 export default configuration

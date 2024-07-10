@@ -27,6 +27,7 @@
   "type": "module",
   "dependencies": {
     "@fontsource-variable/inter": "^5.0.18",
+    "@fontsource-variable/noto-sans-mono": "^5.0.20",
     "@prisma/client": "5.16.2"
   }
 }

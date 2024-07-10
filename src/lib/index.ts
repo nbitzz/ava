@@ -92,41 +92,44 @@ export async function getUserInfo(id: string) {
     })
     if (!tokenInfo) return
 
+    let userInfo
+
     // check for cached userinfo
     if (userInfoCache.has(tokenInfo.owner))
-        return userInfoCache.get(tokenInfo.owner)
-
+        userInfo = userInfoCache.get(tokenInfo.owner)
+    else {
     let userInfoRequest = await fetchUserInfo(tokenInfo.token)
-    if (!userInfoRequest.ok) {
-        // assume that token has expired.
-        // try fetching a new one
+        if (!userInfoRequest.ok) {
+            // assume that token has expired.
+            // try fetching a new one
 
-        if (!tokenInfo.refreshToken) return // no refresh token. back out
-        let token = await getNewToken({
-            grant_type: "refresh_token",
-            refresh_token: tokenInfo.refreshToken
-        })
+            if (!tokenInfo.refreshToken) return // no refresh token. back out
+            let token = await getNewToken({
+                grant_type: "refresh_token",
+                refresh_token: tokenInfo.refreshToken
+            })
 
-        if (!token) return // refresh failed. back out
-        prisma.token.update({
-            where: { id },
-            data: {
-                token: token.access_token,
-                refreshToken: token.refresh_token
-            }
-        })
+            if (!token) return // refresh failed. back out
+            prisma.token.update({
+                where: { id },
+                data: {
+                    token: token.access_token,
+                    refreshToken: token.refresh_token
+                }
+            })
 
-        userInfoRequest = await fetchUserInfo(token.access_token)
-        if (!userInfoRequest.ok) return // Give up
+            userInfoRequest = await fetchUserInfo(token.access_token)
+            if (!userInfoRequest.ok) return // Give up
+        }
+
+        userInfo = await userInfoRequest.json()
+    
+        // cache userinfo
+        userInfoCache.set(tokenInfo.owner, userInfo)
+        setTimeout(() => userInfoCache.delete(tokenInfo.owner), 60*60*1000)
     }
 
-    const userInfo = await userInfoRequest.json()
-    
-    // cache userinfo
-    userInfoCache.set(tokenInfo.owner, userInfo)
-    setTimeout(() => userInfoCache.delete(tokenInfo.owner), 60*60*1000)
-
-    return userInfo as User
+    return { ...userInfo, identifier: userInfo[configuration.userinfo.identifier] } as User
 }
 
 export function deleteToken(id: string) {
