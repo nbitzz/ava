@@ -1,0 +1,11 @@
+build
+.data
+node_modules
+readme
+README.md
+.npmrc
+.prettierrc
+.prettierignore
+.gitignore
+.env.example
+.svelte-kit

@@ -3,10 +3,8 @@ import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { prisma } from "./clientsingleton"
 import configuration from "./configuration"
-import { Magick, MagickCore } from "magickwand.js"
+import Sharp from "sharp"
 import mime from "mime"
-
-Magick.SetSecurityPolicy(await Bun.file('./imagemagick.policy.xml').text())
 
 // todo: make customizable
 export const avatarDirectory = "./.data/avatars"
@@ -37,23 +35,18 @@ export async function getPathToAvatarForIdentifier(identifier: string, size: str
     return getPathToAvatarForUid(user?.userId, size)
 }
 
-export async function rerenderAvatar(bin: ArrayBuffer, squareSize?: number) {
-    let img = new Magick.Image;
-    // read file
-    await img.readAsync(new Magick.Blob(bin),"")
-    if (squareSize) {
-        // resize, but don't upscale, while filling without squishing
-        await img.scaleAsync(`${squareSize}x${squareSize}^>`)
-    }
-    // center crop
-    const size = img.size()
-    squareSize = Math.min(size.width(), size.height())
-    await img.extentAsync(`${squareSize}x${squareSize}`, MagickCore.CenterGravity)
-    
-    // return avatar buffer
-    let tempBlob = new Magick.Blob()
-    await img.writeAsync(tempBlob)
-    return tempBlob.dataAsync()
+export async function rerenderAvatar(bin: ArrayBuffer, squareSize: number) {
+    let img = Sharp(bin);
+    let metadata = await img.metadata();
+    squareSize = Math.min(...[metadata.width, metadata.height].filter(e => e) as number[], squareSize)
+
+    img.resize({
+        width: squareSize,
+        height: squareSize,
+        fit: "cover"
+    })
+
+    return img.toBuffer()
 }
 
 export async function setNewAvatar(uid: string, avatar?: File) {
