@@ -21,7 +21,7 @@ COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 RUN npx prisma generate
 # vite build
-RUN NODE_ENV=production bun --bun run build
+RUN NODE_ENV=production npm run build
 
 FROM base AS release
 COPY --from=prisma /usr/src/app/prisma prisma
