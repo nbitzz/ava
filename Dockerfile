@@ -16,7 +16,7 @@ COPY --from=install /temp/prod/node_modules node_modules
 COPY . .
 RUN npx prisma generate
 
-FROM base AS prisma-dev
+FROM base AS build
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 RUN npx prisma generate
