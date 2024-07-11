@@ -27,6 +27,7 @@ FROM base AS release
 COPY --from=prisma /usr/src/app/prisma prisma
 COPY --from=prisma /usr/src/app/node_modules node_modules
 COPY --from=build /usr/src/app/build build
+COPY --from=build /usr/src/app/static static
 COPY --from=build /usr/src/app/package.json .
 
 EXPOSE 3000/tcp
