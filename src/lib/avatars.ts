@@ -1,4 +1,4 @@
-import { mkdir, readdir, rm } from "node:fs/promises"
+import { mkdir, readdir, rm, writeFile } from "node:fs/promises"
 import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { prisma } from "./clientsingleton"
@@ -72,7 +72,7 @@ export async function setNewAvatar(uid: string, avatar?: File) {
         try {
             let start = Date.now()
             let rerenderedAvatarData = await rerenderAvatar(avatarData, x)
-            await Bun.write(
+            await writeFile(
                 join(userAvatarDirectory, `${x}.${fileExtension}`),
                 rerenderedAvatarData
             )
