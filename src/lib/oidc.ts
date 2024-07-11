@@ -12,7 +12,7 @@ const userInfoCache = new Map<string, User>()
  * @description Launch an OAuth2 login request for this request.
  * @param req Request to launch the login for; required to obtain the Host header.
  */
-export function launchLogin(req: Request) {
+export function launchLogin(url: string) {
     // Create a state to be used in the OAuth2 authorization request
     const state = crypto.randomUUID()
 
@@ -20,7 +20,7 @@ export function launchLogin(req: Request) {
     const searchParams = new URLSearchParams({
         response_type: "code",
         client_id: configuration.oauth2.client.id,
-        redirect_uri: req.url,
+        redirect_uri: url,
         scope: "openid profile",
         state
     })
@@ -41,7 +41,7 @@ export function launchLogin(req: Request) {
                     () => states.delete(state),
                     2*60*1000
                 ),
-                redirect_uri: req.url
+                redirect_uri: url
             }
         )
     

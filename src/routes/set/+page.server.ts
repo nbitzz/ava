@@ -3,13 +3,13 @@ import configuration from "$lib/configuration.js";
 import { fail } from "@sveltejs/kit";
 import { avatarDirectory, renderSizes, setNewAvatar } from "$lib/avatars.js";
 import { join } from "path";
-export async function load({ request, parent }) {
+export async function load({ request, parent, url }) {
     const { user } = await parent();
     if (!user)
-        launchLogin(request)
+        launchLogin(url.toString())
 
     return {
-        url: request.url,
+        url: url.toString(),
         allowedImageTypes: configuration.allowed_types,
         renderSizes
     }
