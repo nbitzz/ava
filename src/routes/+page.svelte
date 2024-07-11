@@ -10,4 +10,5 @@
 <p>
     If you'd like to set a profile picture, <a href="/set">click here</a>.
     If logged out, you will be redirected to the <abbr title="OpenID Connect">OIDC</abbr> provider of this instance.
+    The source code for ava is available under the MIT License at <a href="https://git.sucks.win/split/ava">git.sucks.win/split/ava</a>.
 </p>
