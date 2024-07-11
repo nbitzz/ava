@@ -97,18 +97,14 @@ export async function getUserInfo(id: string) {
         userInfo = userInfoCache.get(tokenInfo.owner)
     else {
         let userInfoRequest = await fetchUserInfo(tokenInfo.token)
-        console.log(`userinforequest with ${userInfoRequest.status}`)
         if (!userInfoRequest.ok) {
             // assume that token has expired.
             // try fetching a new one
-            console.log("refresh token", tokenInfo.refreshToken)
             if (!tokenInfo.refreshToken) return // no refresh token. back out
             let token = await getNewToken({
                 grant_type: "refresh_token",
                 refresh_token: tokenInfo.refreshToken
             })
-            console.log("new token", token)
-            console.log("new reftoken", token?.refresh_token)
             if (!token) return // refresh failed. back out
             await prisma.token.update({
                 where: { id },
@@ -125,7 +121,6 @@ export async function getUserInfo(id: string) {
         userInfo = await userInfoRequest.json()
 
         // update user
-        console.log('aaa')
         await prisma.user.upsert({
             where: {
                 userId: userInfo.sub,
@@ -181,7 +176,6 @@ export async function getRequestUser(request: Request, cookies: Cookies) {
         // could cache this, but lazy
 
         let userInfo = await (await fetchUserInfo(tokens.access_token)).json() as User
-        console.log(tokens.refresh_token)
         // create a new token
         let newToken = await prisma.token.create({
             data: {
