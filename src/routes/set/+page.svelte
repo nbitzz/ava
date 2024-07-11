@@ -36,9 +36,6 @@
     form > input[type="file"]::file-selector-button {
         display: none;
     }
-    form > label {
-        flex-shrink: 0;
-    }
     summary::marker {
         content: ""
     }
@@ -74,10 +71,10 @@
         </div>
     </details>
 </p>
-<form method="post" enctype="multipart/form-data" action="?/set">
-    <label for="newAvatar">Set a new avatar &#x279C;</label>
+<form method="post" enctype="multipart/form-data">
     <input type="file" bind:files={files} accept={data.allowedImageTypes.join(",")} name="newAvatar">
-    <input type="submit" value="Upload">
+    <input type="submit" name="action" value="Upload">
+    <input type="submit" name="action" value="Clear">
 </form>
 {#if form}
     {#if form.success}

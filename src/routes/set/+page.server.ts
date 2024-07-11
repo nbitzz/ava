@@ -16,18 +16,20 @@ export async function load({ request, parent, url }) {
 }
 
 export const actions = {
-    set: async ({request, cookies}) => {
+    default: async ({request, cookies}) => {
         let user = await getRequestUser(request, cookies);
         if (!user)
             return fail(401, {error: "unauthenticated"})
 
         let submission = await request.formData();
-        let newAvatar = submission.get("newAvatar")
-        if (newAvatar !== undefined && !(newAvatar instanceof File))
-            return fail(400, {success: false, error: "incorrect entry type"})
-        if (!configuration.allowed_types.includes(newAvatar.type))
-            return fail(400, {success: false, error: `allowed types does not include ${newAvatar.type}`})
-
+        let newAvatar = undefined
+        if (submission.get("action") != "Clear") {
+            newAvatar = submission.get("newAvatar")
+            if (newAvatar !== undefined && !(newAvatar instanceof File))
+                return fail(400, {success: false, error: "incorrect entry type"})
+            if (!configuration.allowed_types.includes(newAvatar.type))
+                return fail(400, {success: false, error: `allowed types does not include ${newAvatar.type}`})
+        }
         let time = await setNewAvatar(user.sub, newAvatar)
 
         return {
@@ -35,6 +37,7 @@ export const actions = {
             message: Object.entries(time)
                 .map(([res, time]) => `${res}x${res} took ${time}ms to render`)
                 .join("\n")
+                || "No timing information available"
         }
     }
 }

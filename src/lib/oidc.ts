@@ -21,7 +21,7 @@ export function launchLogin(url: string) {
         response_type: "code",
         client_id: configuration.oauth2.client.id,
         redirect_uri: url,
-        scope: "openid profile",
+        scope: configuration.oauth2.client.scopes,
         state
     })
     // Did not think this would work lmao
@@ -97,16 +97,18 @@ export async function getUserInfo(id: string) {
         userInfo = userInfoCache.get(tokenInfo.owner)
     else {
         let userInfoRequest = await fetchUserInfo(tokenInfo.token)
+        console.log(`userinforequest with ${userInfoRequest.status}`)
         if (!userInfoRequest.ok) {
             // assume that token has expired.
             // try fetching a new one
-
+            console.log("refresh token", tokenInfo.refreshToken)
             if (!tokenInfo.refreshToken) return // no refresh token. back out
             let token = await getNewToken({
                 grant_type: "refresh_token",
                 refresh_token: tokenInfo.refreshToken
             })
-
+            console.log("new token", token)
+            console.log("new reftoken", token?.refresh_token)
             if (!token) return // refresh failed. back out
             await prisma.token.update({
                 where: { id },
@@ -139,7 +141,7 @@ export async function getUserInfo(id: string) {
     
         // cache userinfo
         userInfoCache.set(tokenInfo.owner, userInfo)
-        setTimeout(() => userInfoCache.delete(tokenInfo.owner), 60*60*1000)
+        setTimeout(() => userInfoCache.delete(tokenInfo.owner), 15*60*1000)
     }
 
     return { ...userInfo, identifier: userInfo[configuration.userinfo.identifier] } as User
@@ -179,7 +181,7 @@ export async function getRequestUser(request: Request, cookies: Cookies) {
         // could cache this, but lazy
 
         let userInfo = await (await fetchUserInfo(tokens.access_token)).json() as User
-
+        console.log(tokens.refresh_token)
         // create a new token
         let newToken = await prisma.token.create({
             data: {
