@@ -16,3 +16,8 @@ model Token {
   token String
   refreshToken String?
 }
+
+model User {
+  userId String @id @unique
+  identifier String
+}

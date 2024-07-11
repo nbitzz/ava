@@ -1,5 +1,5 @@
 import { invalidate } from "$app/navigation";
-import { deleteToken } from "$lib";
+import { deleteToken } from "$lib/oidc";
 import configuration from "$lib/configuration.js";
 import { redirect } from "@sveltejs/kit";
 

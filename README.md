@@ -1,6 +1,6 @@
 # ava
 
-ava is a simple avatar server written in TypeScript with SvelteKit and OIDC support.
+ava is a simple avatar server written in TypeScript for Bun with SvelteKit and OIDC support.
 This exists for a few reasons:
 1. I wanted to learn SvelteKit
 2. I wanted to try implementing OAuth2/OIDC
@@ -12,3 +12,7 @@ This exists for a few reasons:
 <p align="center">
     <img alt="Screenshot of the ava homepage" src=readme/screenshot.png>
 </p>
+
+## Todo
+- Render image in multiple formats(?)
+- Set up a more secure ImageMagick policy

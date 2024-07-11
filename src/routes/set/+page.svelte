@@ -1,7 +1,15 @@
 <script lang="ts">
 	import type { User } from "$lib/types";
+	import FilePreviewSet from "./FilePreviewSet.svelte";
 
-    export let data: {user: User, url: string};
+    export let data: {user: User, url: string, allowedImageTypes: string[]};
+    let files: FileList;
+    let fileSrc = `/avatar/${data.user.identifier}/`
+    
+    $: if (files && files.length >= 0) {
+        console.log(files.length)
+        fileSrc = URL.createObjectURL(files.item(0)!)
+    } else fileSrc = `/avatar/${data.user.identifier}/`
 </script>
 
 <style>
@@ -39,10 +47,10 @@
     }
     details > div {
         border-left: 0.25em solid var(--link);
-        padding-left: 1em;
+        padding: 0 1em;
         overflow-x: auto;
         background-color: var(--crust);
-        width: 100%;
+        width: calc( 100% - 2em );
     }
 </style>
 
@@ -66,7 +74,13 @@
     </details>
 </p>
 <form method="post" enctype="multipart/form-data">
-    <label for="newAvatar">Set a new avatar:</label>
-    <input type="file" accept="image/*" name="newAvatar">
+    <label for="newAvatar">Set a new avatar &#x279C;</label>
+    <input type="file" bind:files={files} accept={data.allowedImageTypes.join(",")} name="newAvatar">
     <input type="submit" value="Upload">
 </form>
+{#key fileSrc}
+    <br>
+    <FilePreviewSet avatarUrl={fileSrc} style="border-radius:8px;"  />
+    <br>
+    <FilePreviewSet avatarUrl={fileSrc} style="border-radius:100%;" />
+{/key}

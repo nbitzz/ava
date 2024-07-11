@@ -1,9 +1,7 @@
 import { error, redirect, type Cookies } from "@sveltejs/kit"
 import configuration from "./configuration"
 import type { User } from "./types"
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import { prisma } from "./clientsingleton"
 
 // Map of OAuth2 states
 const states = new Map<string, { redirect_uri: string, timeout: ReturnType<typeof setTimeout> }>()
