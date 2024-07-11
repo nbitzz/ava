@@ -96,7 +96,7 @@ export async function getUserInfo(id: string) {
     if (userInfoCache.has(tokenInfo.owner))
         userInfo = userInfoCache.get(tokenInfo.owner)
     else {
-    let userInfoRequest = await fetchUserInfo(tokenInfo.token)
+        let userInfoRequest = await fetchUserInfo(tokenInfo.token)
         if (!userInfoRequest.ok) {
             // assume that token has expired.
             // try fetching a new one
@@ -108,7 +108,7 @@ export async function getUserInfo(id: string) {
             })
 
             if (!token) return // refresh failed. back out
-            prisma.token.update({
+            await prisma.token.update({
                 where: { id },
                 data: {
                     token: token.access_token,
@@ -121,6 +121,21 @@ export async function getUserInfo(id: string) {
         }
 
         userInfo = await userInfoRequest.json()
+
+        // update user
+        console.log('aaa')
+        await prisma.user.upsert({
+            where: {
+                userId: userInfo.sub,
+            },
+            update: {
+                identifier: userInfo[configuration.userinfo.identifier]
+            },
+            create: {
+                userId: userInfo.sub,
+                identifier: userInfo[configuration.userinfo.identifier]
+            }
+        })
     
         // cache userinfo
         userInfoCache.set(tokenInfo.owner, userInfo)

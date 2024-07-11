@@ -30,7 +30,8 @@
     "@fontsource-variable/inter": "^5.0.18",
     "@fontsource-variable/noto-sans-mono": "^5.0.20",
     "@prisma/client": "5.16.2",
-    "magickwand.js": "^1.1.0"
+    "magickwand.js": "^1.1.0",
+    "mime": "^4.0.4"
   },
   "trustedDependencies": [
     "magickwand.js"

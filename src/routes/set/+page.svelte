@@ -2,7 +2,8 @@
 	import type { User } from "$lib/types";
 	import FilePreviewSet from "./FilePreviewSet.svelte";
 
-    export let data: {user: User, url: string, allowedImageTypes: string[]};
+    export let data: {user: User, url: string, allowedImageTypes: string[], renderSizes: number[]};
+    export let form: { success: true, message: string } | { success: false, error: string } | undefined;
     let files: FileList;
     let fileSrc = `/avatar/${data.user.identifier}/`
     
@@ -66,18 +67,30 @@
         <summary>Avatar URLs...</summary>
         <div>
             <ul>
-                {#each ["", "32", "64", "128", "256", "512"] as variant}
+                {#each ["", ...data.renderSizes] as variant}
                     <li>{new URL(`/avatar/${data.user.identifier}/${variant}`, data.url)}</li>
                 {/each}
             </ul>
         </div>
     </details>
 </p>
-<form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data" action="?/set">
     <label for="newAvatar">Set a new avatar &#x279C;</label>
     <input type="file" bind:files={files} accept={data.allowedImageTypes.join(",")} name="newAvatar">
     <input type="submit" value="Upload">
 </form>
+{#if form}
+    {#if form.success}
+        <details>
+            <summary><small>Avatar set successfully</small></summary>
+            <div>
+                <pre>{form.message}</pre>
+            </div>
+        </details>
+    {:else}
+        <small>An error occurred: {form.error}</small>
+    {/if}
+{/if}
 {#key fileSrc}
     <br>
     <FilePreviewSet avatarUrl={fileSrc} style="border-radius:8px;"  />

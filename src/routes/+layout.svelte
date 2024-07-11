@@ -50,7 +50,7 @@
         nav > * {
             display: flex; /* Flexbox fixes everything! */
         }
-        a {
+        a, small {
             color: var(--link)
         }
         code, pre {
