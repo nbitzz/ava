@@ -12,7 +12,3 @@ This exists for a few reasons:
 <p align="center">
     <img alt="Screenshot of the ava homepage" src=readme/screenshot.png>
 </p>
-
-## Todo
-- Render image in multiple formats(?)
-- Set up a more secure ImageMagick policy
