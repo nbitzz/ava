@@ -1,0 +1,10 @@
+services:
+  ava:
+    build: .
+    volumes:
+      - ava-data:/usr/src/app/.data
+    ports:
+      - "3000:3000"
+
+volumes:
+  ava-data:
