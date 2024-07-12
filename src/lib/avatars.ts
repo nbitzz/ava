@@ -1,4 +1,4 @@
-import { mkdir, readdir, rm, writeFile } from "node:fs/promises"
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises"
 import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { prisma } from "./clientsingleton"
@@ -44,7 +44,7 @@ export function generateMissingAvatar(path: string, size: number, fmt?: keyof Sh
                         [0][1]
                 )
         
-        const buf = await Bun.file(pathToBestQualityImg).arrayBuffer()
+        const buf = await readFile(pathToBestQualityImg)
         res(writeAvatar(path, await renderAvatar(buf, size, fmt)))
         missingAvatarQueue.delete(qid)
     })
@@ -152,7 +152,7 @@ export async function writeAvatar(avatarDir: string, renderedAvatar: Awaited<Ret
         `${renderedAvatar.squareSize}.${renderedAvatar.extension}`
     )
 
-    await Bun.write(
+    await writeFile(
         targetPath,
         renderedAvatar.buf
     )
