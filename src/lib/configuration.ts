@@ -1,3 +1,4 @@
+import { format, type FormatEnum } from "sharp"
 const configuration = {
     oauth2: {
         endpoints: {
@@ -15,6 +16,23 @@ const configuration = {
         route: process.env.USERINFO__ROUTE!,
         identifier: process.env.USERINFO__IDENTIFIER!
     },
-    allowed_types: process.env.ALLOWED_TYPES?.split(",") || []
+    images: {
+        permitted_input: 
+            (
+                process.env.ALLOWED_TYPES 
+                || process.env.IMAGES__ALLOWED_INPUT_FORMATS
+            )?.split(",") || [],
+        default_resolution: parseInt((process.env.IMAGES__DEFAULT_RESOLUTION || "").toString(), 10) || 512,
+        extra_output_types: 
+            process.env.IMAGES__EXTRA_OUTPUT_FORMATS
+                ?.split(",")
+                .filter(e => e in format) as (keyof FormatEnum)[]
+                || [],
+        output_resolutions: 
+            process.env.IMAGES__OUTPUT_RESOLUTIONS
+                ?.split(",")
+                .map(e => parseInt(e,10)) 
+                || [ 1024, 512, 256, 128, 64, 32 ]
+    }
 }
 export default configuration
