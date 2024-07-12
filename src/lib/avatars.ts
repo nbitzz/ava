@@ -4,7 +4,6 @@ import { join } from "node:path"
 import { prisma } from "./clientsingleton"
 import configuration from "./configuration"
 import Sharp, { type FormatEnum } from "sharp"
-import mime from "mime"
 
 // todo: make customizable
 export const avatarDirectory = "./.data/avatars"
