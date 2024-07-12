@@ -1,4 +1,4 @@
-import { format, type FormatEnum } from "sharp"
+import Sharp, { type FormatEnum } from "sharp"
 const configuration = {
     oauth2: {
         endpoints: {
@@ -26,7 +26,7 @@ const configuration = {
         extra_output_types: 
             process.env.IMAGES__EXTRA_OUTPUT_FORMATS
                 ?.split(",")
-                .filter(e => e in format) as (keyof FormatEnum)[]
+                .filter(e => e in Sharp.format) as (keyof FormatEnum)[]
                 || [],
         output_resolutions: 
             process.env.IMAGES__OUTPUT_RESOLUTIONS
