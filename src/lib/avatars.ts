@@ -3,56 +3,167 @@ import { existsSync } from "node:fs"
 import { join } from "node:path"
 import { prisma } from "./clientsingleton"
 import configuration from "./configuration"
-import Sharp from "sharp"
+import Sharp, { type FormatEnum } from "sharp"
 import mime from "mime"
 
 // todo: make customizable
 export const avatarDirectory = "./.data/avatars"
-export const defaultAvatarDirectory = "./static/default/"
-export const renderSizes = [ 1024, 512, 256, 128, 64, 32 ]
+export const defaultAvatarDirectory = "./.data/defaultAvatar/"
 
-export async function getPathToAvatarForUid(uid?: string, size: string = "512") {
+await mkdir(defaultAvatarDirectory, { recursive: true })
+
+export const missingAvatarQueue = new Map<
+    string,
+    Promise<string>
+>()
+
+/**
+ * @description Generate an avatar at the selected size and format 
+ * @param path Path to the avatar directory
+ * @param size Avatar size
+ * @param fmt Avatar format
+ * @returns Promise that resolves to the path of the newly-generated avatar
+ */
+export function generateMissingAvatar(path: string, size: number, fmt?: keyof Sharp.FormatEnum) {
+    let qid = JSON.stringify([path, size, fmt])
+    if (missingAvatarQueue.has(qid))
+        return missingAvatarQueue.get(qid)!
+
+    let prom = new Promise<string>(async (res, rej) => {
+        // locate best quality currently available
+        const av = await readdir(path)
+        // this can probably be done better but I DON'T GIVE A FUCK  !!!!
+        const pathToBestQualityImg = 
+            path == defaultAvatarDirectory
+                ? "./assets/default.png"
+                : join(
+                    path,
+                    av
+                        .map(e => [parseInt(e.match(/(.*)\..*/)?.[1] || "", 10), e] as [number, string])
+                        .sort(([a],[b]) => b - a)
+                        [0][1]
+                )
+        
+        const buf = await Bun.file(pathToBestQualityImg).arrayBuffer()
+        res(writeAvatar(path, await renderAvatar(buf, size, fmt)))
+        missingAvatarQueue.delete(qid)
+    })
+
+    missingAvatarQueue.set(qid, prom)
+    return prom
+}
+
+/**
+ * @description Get the path of an avatar for a user
+ * @param uid UID of the user
+ * @param size Avatar size
+ * @param fmt Avatar format
+ * @returns Path to the avatar of a user
+ */
+export async function getPathToAvatarForUid(uid?: string, size: number = configuration.images.default_resolution, fmt?: string) {
     if (uid?.includes("/"))
         throw Error("UID cannot include /")
 
+    // check if format is valid
+    if (![undefined, ...configuration.images.extra_output_types].includes(fmt as keyof FormatEnum))
+        return
+
+    // if no uid / no avatar folder then default to the default avatar directory
     let userAvatarDirectory = uid ? join(avatarDirectory, uid) : defaultAvatarDirectory
     if (!existsSync(userAvatarDirectory))
         userAvatarDirectory = defaultAvatarDirectory
 
-    let sizes = await readdir(userAvatarDirectory)
-    const targetAvatar = sizes.find(s => s.match(/(.*)\..*/)?.[1] == size)
+    // bind a makeMissing function
+    const makeMissing = generateMissingAvatar.bind(null, userAvatarDirectory, size, fmt as keyof FormatEnum)
+
+    // get directory to extract imgs from
+    let targetAvatarDirectory = join(userAvatarDirectory, fmt||"")
+
+    // if there's no images for the specified fmt, generate new ones
+    if (!existsSync(targetAvatarDirectory))
+        return makeMissing()
+
+    let sizes = await readdir(targetAvatarDirectory, {withFileTypes: true})
+
+    const targetAvatar = sizes.filter(e => e.isFile()).find(
+        s => parseInt(s.name.match(/(.*)\..*/)?.[1] || "", 10) == size
+    )
+
     if (targetAvatar)
-        return join(userAvatarDirectory, targetAvatar)
+        return join(targetAvatarDirectory, targetAvatar.name)
+    else if (configuration.images.output_resolutions.includes(size))
+        return makeMissing() // generate image at this size for the specified format
 }
 
-export async function getPathToAvatarForIdentifier(identifier: string, size: string = "512") {
+export async function getPathToAvatarForIdentifier(identifier: string, size: number = configuration.images.default_resolution, fmt?: string) {
     let user = await prisma.user.findFirst({
         where: {
             identifier
         }
     })
 
-    return getPathToAvatarForUid(user?.userId, size)
+    return getPathToAvatarForUid(user?.userId, size, fmt)
 }
 
-export async function rerenderAvatar(bin: ArrayBuffer, squareSize: number) {
+/**
+ * @description Render an avatar at the specified size and format
+ * @param bin Image to rerender
+ * @param squareSize Target size of the new image
+ * @param format Image target format
+ * @returns Avatar buffer and other information which may be useful
+ */
+export async function renderAvatar(bin: ArrayBuffer|Buffer, squareSize: number, format?: keyof Sharp.FormatEnum) {
+    const opBegin = Date.now()
     let img = Sharp(bin);
     let metadata = await img.metadata();
-    squareSize = Math.min(...[metadata.width, metadata.height].filter(e => e) as number[], squareSize)
+    let realSquareSize = Math.min(...[metadata.width, metadata.height].filter(e => e) as number[], squareSize)
 
     img.resize({
-        width: squareSize,
-        height: squareSize,
+        width: realSquareSize,
+        height: realSquareSize,
         fit: "cover"
     })
 
-    return img.toBuffer()
+    if (format) img.toFormat(format)
+    
+    return {
+        buf: await img.toBuffer(),
+        extension: format || metadata.format,
+        requestedFormat: format,
+        squareSize,
+        time: Date.now()-opBegin
+    }
+}
+
+export async function writeAvatar(avatarDir: string, renderedAvatar: Awaited<ReturnType<typeof renderAvatar>>) {
+    const targetDir = join(
+            avatarDir,
+            ...(
+                renderedAvatar.requestedFormat
+                ? [ renderedAvatar.requestedFormat ]
+                : []
+            )
+        )
+
+    await mkdir(targetDir, {recursive: true})
+
+    const targetPath = join(
+        targetDir,
+        `${renderedAvatar.squareSize}.${renderedAvatar.extension}`
+    )
+
+    await Bun.write(
+        targetPath,
+        renderedAvatar.buf
+    )
+
+    return targetPath
 }
 
 export async function setNewAvatar(uid: string, avatar?: File) {
     if (uid?.includes("/"))
         throw Error("UID cannot include /")
-    
+
     // Delete current avatar directory
     const userAvatarDirectory = join(avatarDirectory, uid)
     await rm(userAvatarDirectory, { recursive: true, force: true })
@@ -62,24 +173,25 @@ export async function setNewAvatar(uid: string, avatar?: File) {
     // make a new directory
     mkdir(userAvatarDirectory, { recursive: true })
 
-    let time: Record<number, number> = {}
+    let time: Record<number, Record<"input" | keyof Sharp.FormatEnum, number>> = {}
 
     // render all images and write to disk
     let avatarData = await avatar.arrayBuffer()
-    let fileExtension = mime.getExtension(avatar.type)
-    for (let x of renderSizes) {
-        console.log(x)
-        try {
-            let start = Date.now()
-            let rerenderedAvatarData = await rerenderAvatar(avatarData, x)
-            await Bun.write(
-                join(userAvatarDirectory, `${x}.${fileExtension}`),
-                rerenderedAvatarData
-            )
-            time[x] = Date.now()-start
-        } catch (e) { // clear pfp and throw if error encountered
-            await rm(userAvatarDirectory, { recursive: true, force: true })
-            throw e
+    for (let x of configuration.images.output_resolutions) {
+        time[x] = Object.fromEntries([
+            ["input", -1],
+            ...configuration.images.extra_output_types
+                    .map( e => [ e, -1 ] )
+        ])
+        for (let t of [undefined, ...configuration.images.extra_output_types]) {
+            try {
+                const rendered = await renderAvatar(avatarData, x, t)
+                await writeAvatar(userAvatarDirectory, rendered)
+                time[x][t || "input"] = rendered.time
+            } catch (e) { // clear pfp and throw if error encountered
+                await rm(userAvatarDirectory, { recursive: true, force: true })
+                throw e
+            }
         }
     }
     

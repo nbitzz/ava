@@ -4,6 +4,8 @@
     import ava from "../assets/ava_icon.svg?raw"
 	import type { User } from "$lib/types";
     export let data: { user?: User };
+
+    const buildName = `${__APP_NAME__} ${__APP_VERSION__}`
 </script>
 <svelte:head>
     <title>ava</title>
@@ -50,11 +52,15 @@
         nav > * {
             display: flex; /* Flexbox fixes everything! */
         }
-        a, small {
+        a, small, footer {
             color: var(--link)
         }
         code, pre {
             font-family: "Space Mono", monospace, monospace;
+        }
+        footer {
+            margin: 1em 0;
+            text-align: center;
         }
     </style>
 </svelte:head>
@@ -69,4 +75,9 @@
     </nav>
     
     <slot />
+
+    <footer>
+        {import.meta.env.DEV ? "[DEV]" : ""}
+        {buildName}
+    </footer>
 </body>
