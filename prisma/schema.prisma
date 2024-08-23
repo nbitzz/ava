@@ -21,4 +21,14 @@ model Token {
 model User {
   userId String @id @unique
   identifier String
+  name String?
+  avatar Avatar?
+}
+
+model Avatar {
+  id String @id @unique @default(uuid())
+  user User @relation(fields: [userId], references: [userId])
+  userId String @unique
+  altText String?
+  source String?
 }

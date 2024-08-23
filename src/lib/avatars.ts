@@ -4,6 +4,7 @@ import { join } from "node:path"
 import { prisma } from "./clientsingleton"
 import configuration from "./configuration"
 import Sharp, { type FormatEnum } from "sharp"
+import type { Avatar } from "@prisma/client"
 
 // todo: make customizable
 export const avatarDirectory = "./.data/avatars"
@@ -104,6 +105,42 @@ export async function getPathToAvatarForIdentifier(identifier: string, size: num
     return getPathToAvatarForUid(user?.userId, size, fmt)
 }
 
+function sanitizeAvatar(avatar: Avatar | null) {
+    return avatar
+    ? {
+        altText: avatar.altText || "",
+        source: avatar.source || "",
+        default: false
+    }
+    : {
+        altText: "Default profile picture",
+        source: "https://git.sucks.win/split/ava",
+        default: true
+    }
+}
+
+export async function getMetadataForIdentifier(identifier: string) {
+    let avatar = await prisma.avatar.findFirst({
+        where: {
+            user: {
+                identifier
+            }
+        } 
+    })
+
+    return sanitizeAvatar(avatar)
+}
+
+export async function getMetadataForUserId(userId: string) {
+    let avatar = await prisma.avatar.findFirst({
+        where: {
+            userId
+        } 
+    })
+
+    return sanitizeAvatar(avatar)
+}
+
 /**
  * @description Render an avatar at the specified size and format
  * @param bin Image to rerender
@@ -126,7 +163,7 @@ export async function renderAvatar(bin: ArrayBuffer|Buffer, squareSize: number, 
     if (format) img.toFormat(format)
     
     return {
-        buf: await img.toBuffer(),
+        img,
         extension: format || metadata.format,
         requestedFormat: format,
         squareSize,
@@ -153,7 +190,7 @@ export async function writeAvatar(avatarDir: string, renderedAvatar: Awaited<Ret
 
     await writeFile(
         targetPath,
-        renderedAvatar.buf
+        renderedAvatar.img
     )
 
     return targetPath
@@ -163,9 +200,14 @@ export async function setNewAvatar(uid: string, avatar?: File) {
     if (uid?.includes("/"))
         throw Error("UID cannot include /")
 
-    // Delete current avatar directory
+    // Delete current avatar directory and avatar database entry
     const userAvatarDirectory = join(avatarDirectory, uid)
     await rm(userAvatarDirectory, { recursive: true, force: true })
+    await prisma.avatar.deleteMany({
+        where: {
+            userId: uid
+        }
+    })
 
     if (!avatar) return {} // we don't need to set a new one
     
@@ -193,6 +235,13 @@ export async function setNewAvatar(uid: string, avatar?: File) {
             }
         }
     }
+    
+    // create new Avatar database entry
+    await prisma.avatar.create({
+        data: {
+            userId: uid
+        }
+    })
     
     return time
 }
