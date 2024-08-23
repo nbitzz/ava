@@ -126,11 +126,13 @@ export async function getUserInfo(id: string) {
                 userId: userInfo.sub,
             },
             update: {
-                identifier: userInfo[configuration.userinfo.identifier]
+                identifier: userInfo[configuration.userinfo.identifier],
+                name: userInfo.name
             },
             create: {
                 userId: userInfo.sub,
-                identifier: userInfo[configuration.userinfo.identifier]
+                identifier: userInfo[configuration.userinfo.identifier],
+                name: userInfo.name
             }
         })
     
