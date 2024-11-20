@@ -146,14 +146,20 @@ export async function getPathToAvatarForUid(
     return getPathToAvatar(user?.currentAvatarId || undefined, size, fmt)
 }
 
-function sanitizeAvatar(avatar: Avatar | null) {
+export function sanitizeAvatar(
+    avatar:
+        | (Pick<Avatar, "id"> & Partial<Pick<Avatar, "altText" | "source">>)
+        | null
+) {
     return avatar
         ? {
+              id: avatar.id,
               altText: avatar.altText || "",
               source: avatar.source || "",
               default: false,
           }
         : {
+              id: "default",
               altText: "Default profile picture",
               source: "https://git.sucks.win/split/ava",
               default: true,
@@ -290,11 +296,20 @@ export async function createNewAvatar(
             },
         })
         .then(() =>
+            // set the user's avatar
             prisma.user.update({
                 where: { userId: uid },
                 data: { currentAvatarId: avatarId },
             })
         )
+
+    // execute webhooks
+
+    executeHooksForUser(uid, {
+        id: avatarId,
+        default: false,
+        ...metadata,
+    })
 
     return time
 }
@@ -304,4 +319,28 @@ export function deleteAvatar(id: string) {
     return prisma.avatar
         .delete({ where: { id } })
         .then(_ => rm(targetAvatarDirectory, { recursive: true, force: true }))
+}
+
+export async function executeHooksForUser(
+    userId: string,
+    payload: { id: string; altText?: string; source?: string; default: boolean }
+) {
+    let hooks = await prisma.webhook.findMany({
+        where: {
+            enabled: true,
+            userId,
+        },
+    })
+
+    hooks.forEach(async hook =>
+        fetch(hook.url, {
+            method: "POST",
+            body: JSON.stringify(payload),
+        }).catch(e =>
+            console.error(
+                `error executing webhook ${hook.url} for userid ${userId}:`,
+                e
+            )
+        )
+    )
 }

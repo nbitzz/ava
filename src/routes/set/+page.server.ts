@@ -1,7 +1,12 @@
 import { getRequestUser, launchLogin } from "$lib/oidc"
 import configuration from "$lib/configuration.js"
 import { fail } from "@sveltejs/kit"
-import { avatarDirectory, getMetadataForUserId } from "$lib/avatars.js"
+import {
+    avatarDirectory,
+    executeHooksForUser,
+    getMetadataForUserId,
+    sanitizeAvatar,
+} from "$lib/avatars.js"
 import { join } from "path"
 import { prisma } from "$lib/clientsingleton"
 export async function load({ request, parent, url }) {
@@ -43,6 +48,8 @@ export const actions = {
                 },
             })
 
+            executeHooksForUser(user.sub, sanitizeAvatar(null))
+
             return {
                 success: true,
                 message: "Avatar cleared successfully",
@@ -71,6 +78,8 @@ export const actions = {
                     currentAvatarId: avatar.id,
                 },
             })
+
+            executeHooksForUser(user.sub, sanitizeAvatar(avatar))
 
             return {
                 success: true,

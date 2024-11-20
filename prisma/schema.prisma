@@ -19,10 +19,11 @@ model Token {
 }
 
 model User {
-  userId     String   @id @unique
+  userId     String    @id @unique
   identifier String
   name       String?
   avatars    Avatar[]
+  webhooks   Webhook[]
 
   currentAvatarId String? @unique
   currentAvatar   Avatar? @relation("CurrentAvatar", fields: [currentAvatarId], references: [id])
@@ -37,4 +38,13 @@ model Avatar {
 
   altText String?
   source  String?
+}
+
+model Webhook {
+  userId  String
+  user    User    @relation(fields: [userId], references: [userId])
+  url     String
+  enabled Boolean @default(true)
+
+  @@unique([url, userId])
 }

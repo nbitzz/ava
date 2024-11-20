@@ -37,7 +37,7 @@
         border: 1px solid var(--crust);
         padding: 5px;
         aspect-ratio: 1 / 1;
-        border-radius: 100%;
+        border-radius: 8px;
         cursor: pointer;
         background-color: var(--background);
         fill: var(--text);

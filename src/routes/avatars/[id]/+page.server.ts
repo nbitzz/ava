@@ -5,7 +5,9 @@ import {
     avatarDirectory,
     createNewAvatar,
     deleteAvatar,
+    executeHooksForUser,
     getMetadataForUserId,
+    sanitizeAvatar,
 } from "$lib/avatars.js"
 import { join } from "path"
 import { prisma } from "$lib/clientsingleton"
@@ -31,6 +33,7 @@ export const actions = {
         let user = await getRequestUser(request, cookies)
         if (!user) return fail(401, { error: "unauthenticated" })
 
+        // check if user can edit
         if (
             !(await prisma.avatar.findUnique({
                 where: { id, userId: user.sub },
@@ -44,21 +47,28 @@ export const actions = {
             (await request.formData()).entries()
         )
 
+        let data = {
+            altText: altText instanceof File ? undefined : altText,
+            source: source instanceof File ? undefined : source,
+        }
+
         if (action == "Save") {
             await prisma.avatar.update({
                 where: {
                     id,
                 },
-                data: {
-                    altText: altText instanceof File ? undefined : altText,
-                    source: source instanceof File ? undefined : source,
-                },
+                data,
             })
-
-            return redirect(302, "/set")
         } else if (action == "Delete") {
             await deleteAvatar(id)
-            return redirect(302, "/set")
         }
+
+        // execute webhooks
+        executeHooksForUser(
+            user.sub,
+            sanitizeAvatar(action == "Save" ? { id, ...data } : null)
+        )
+
+        return redirect(302, "/set")
     },
 }
