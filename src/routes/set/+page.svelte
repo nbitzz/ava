@@ -2,7 +2,8 @@
 	import type { User } from "$lib/types";
 	import FilePreviewSet from "./FilePreviewSet.svelte";
 
-    export let data: {
+    export interface Props {
+        data: {
         user: User,
         url: string,
         avatar: {
@@ -13,14 +14,13 @@
         allowedImageTypes: string[], 
         renderSizes: number[]
     };
-    export let form: { success: true, message: string } | { success: false, error: string } | undefined;
-    let files: FileList;
-    let fileSrc = `/avatar/${data.user.identifier}/`
+        form: { success: true, message: string } | { success: false, error: string } | undefined;
+    }
+
+    let { data = $bindable(), form }: Props = $props();
+    let files: FileList | undefined = $state();
+    let fileSrc = $derived(files && files.length >= 0 ? URL.createObjectURL(files.item(0)!) : `/avatar/${data.user.identifier}/`)
     
-    $: if (files && files.length >= 0) {
-        data.avatar.altText = "", data.avatar.source = "", data.avatar.default = false
-        fileSrc = URL.createObjectURL(files.item(0)!)
-    } else fileSrc = `/avatar/${data.user.identifier}/`
 </script>
 
 <style>
@@ -82,24 +82,23 @@
 </style>
 
 <h1>Hi, {data.user.name}</h1>
-<p>
-    <details>
-        <summary>View user information...</summary>
-        <div>
-            <pre>{JSON.stringify(data.user, null, 4)}</pre>
-        </div>
-    </details>
-    <details>
-        <summary>Avatar URLs...</summary>
-        <div>
-            <ul>
-                {#each ["", ...data.renderSizes] as variant}
-                    <li>{new URL(`/avatar/${data.user.identifier}/${variant}`, data.url)}</li>
-                {/each}
-            </ul>
-        </div>
-    </details>
-</p>
+<details>
+    <summary>View user information...</summary>
+    <div>
+        <pre>{JSON.stringify(data.user, null, 4)}</pre>
+    </div>
+</details>
+<details>
+    <summary>Avatar URLs...</summary>
+    <div>
+        <ul>
+            {#each ["", ...data.renderSizes] as variant}
+                <li>{new URL(`/avatar/${data.user.identifier}/${variant}`, data.url)}</li>
+            {/each}
+        </ul>
+    </div>
+</details>
+<br>
 <form method="post" enctype="multipart/form-data">
     <input type="file" bind:files={files} accept={data.allowedImageTypes.join(",")} name="newAvatar">
     <div class="metadata">

@@ -1,6 +1,10 @@
 <script lang="ts">
-    export let style: string = "";
-    export let avatarUrl: string;
+    export interface Props {
+        style?: string;
+        avatarUrl: string;
+    }
+
+    let { style = "", avatarUrl }: Props = $props();
 </script>
 <style>
     div {

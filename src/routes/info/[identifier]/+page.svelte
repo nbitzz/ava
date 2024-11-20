@@ -1,12 +1,16 @@
 <script lang="ts">
 	import FilePreviewSet from "../../set/FilePreviewSet.svelte";
 
-    export let data: {
+    interface Props {
+        data: {
         identifier: string,
         name: string,
         altText: string,
         source: string
     };
+    }
+
+    let { data }: Props = $props();
 </script>
 
 <style>
