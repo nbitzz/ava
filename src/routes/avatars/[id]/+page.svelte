@@ -58,6 +58,12 @@
     form textarea:disabled {
         color: var(--link);
     }
+    form input[type="submit"][value="Delete"] {
+        border: 1px solid var(--red);
+        background-color: color-mix(in srgb, var(--red) 20%, var(--background) 80%);
+        color: var(--red);
+        margin-right: auto;
+    }
 </style>
 
 <ReversibleHeading to="/set">
@@ -82,6 +88,7 @@
         <textarea name="source" placeholder="Provide a source for your image">{data.avatar.source}</textarea>
     </div>
     <div class="buttons">
+        <input type="submit" name="action" value="Delete">
         <input type="submit" name="action" value="Save">
     </div>
 </form>

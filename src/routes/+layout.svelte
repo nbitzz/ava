@@ -21,15 +21,23 @@
             --link: #333;
             --background: white;
             --crust: #eee;
+            --red: #d20f39;
+            --yellow: #df8e1d;
+            --green: #40a02b;
         }
+
         @media (prefers-color-scheme:dark) {
             :root {
                 --text: white;
                 --link: #aaa;
                 --background: #111;
                 --crust: #333;
+                --red: #f38ba8;
+                --yellow: #f9e2af;
+                --green: #a6e3a1
             }
         }
+        
         html {
             background: var(--background);
         }

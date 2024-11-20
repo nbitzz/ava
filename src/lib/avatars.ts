@@ -298,3 +298,10 @@ export async function createNewAvatar(
 
     return time
 }
+
+export function deleteAvatar(id: string) {
+    const targetAvatarDirectory = join(avatarDirectory, id)
+    return prisma.avatar
+        .delete({ where: { id } })
+        .then(_ => rm(targetAvatarDirectory, { recursive: true, force: true }))
+}
