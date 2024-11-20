@@ -1,5 +1,5 @@
 {
-  "name": "ava-node",
+  "name": "ava",
   "version": "2.0.0",
   "private": true,
   "scripts": {
@@ -26,6 +26,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@fluentui/svg-icons": "^1.1.265",
     "@fontsource-variable/inter": "^5.0.18",
     "@fontsource-variable/noto-sans-mono": "^5.0.20",
     "@prisma/client": "5.16.2",
