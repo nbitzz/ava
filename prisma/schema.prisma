@@ -19,11 +19,12 @@ model Token {
 }
 
 model User {
-  userId     String    @id @unique
-  identifier String
-  name       String?
-  avatars    Avatar[]
-  webhooks   Webhook[]
+  userId      String       @id @unique
+  identifier  String
+  name        String?
+  avatars     Avatar[]
+  webhooks    Webhook[]
+  emailHashes EmailHashes?
 
   currentAvatarId String? @unique
   currentAvatar   Avatar? @relation("CurrentAvatar", fields: [currentAvatarId], references: [id])
@@ -47,4 +48,11 @@ model Webhook {
   enabled Boolean @default(true)
 
   @@unique([url, userId])
+}
+
+model EmailHashes {
+  forUserId String @id
+  user      User   @relation(fields: [forUserId], references: [userId])
+  sha256    Bytes
+  md5       Bytes
 }

@@ -59,11 +59,11 @@ const configuration = {
                   )
                       ? env.LIBRAVATAR__FORMAT
                       : "jpeg") as keyof FormatEnum,
-                  resize_mode: ["round", "nocache", "cache"].includes(
+                  resize_mode: (["nearest", "nocache", "cache"].includes(
                       env.LIBRAVATAR__GENERATION_MODE
                   )
                       ? env.LIBRAVATAR__GENERATION_MODE
-                      : "round",
+                      : "nearest") as "nearest" | "nocache" | "cache",
               },
           }
         : {}),

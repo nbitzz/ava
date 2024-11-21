@@ -15,6 +15,16 @@ await mkdir(defaultAvatarDirectory, { recursive: true })
 
 export const missingAvatarQueue = new Map<string, Promise<string>>()
 
+export async function getAvailableSizesInPath(path: string) {
+    return (await readdir(path)).map(
+        e =>
+            [parseInt(e.match(/(.*)\..*/)?.[1] || "", 10), e] as [
+                number,
+                string,
+            ]
+    )
+}
+
 /**
  * @description Generate an avatar at the selected size and format
  * @param path Path to the avatar directory
@@ -32,25 +42,14 @@ export function generateMissingAvatar(
 
     let prom = new Promise<string>(async (res, rej) => {
         // locate best quality currently available
-        const av = await readdir(path)
-        // this can probably be done better but I DON'T GIVE A FUCK  !!!!
         const pathToBestQualityImg =
             path == defaultAvatarDirectory
                 ? "./assets/default.png"
                 : join(
                       path,
-                      av
-                          .map(
-                              e =>
-                                  [
-                                      parseInt(
-                                          e.match(/(.*)\..*/)?.[1] || "",
-                                          10
-                                      ),
-                                      e,
-                                  ] as [number, string]
-                          )
-                          .sort(([a], [b]) => b - a)[0][1]
+                      (await getAvailableSizesInPath(path)).sort(
+                          ([a], [b]) => b - a
+                      )[0][1]
                   )
 
         const buf = await readFile(pathToBestQualityImg)
@@ -72,7 +71,8 @@ export function generateMissingAvatar(
 export async function getPathToAvatar(
     avatarId?: string,
     size: number = configuration.images.default_resolution,
-    fmt?: string
+    fmt?: string,
+    bypass_size_limits: boolean = false
 ) {
     if (avatarId?.includes("/")) throw Error("AvatarID cannot include /")
 
@@ -112,7 +112,10 @@ export async function getPathToAvatar(
         .find(s => parseInt(s.name.match(/(.*)\..*/)?.[1] || "", 10) == size)
 
     if (targetAvatar) return join(targetAvatarDirectory, targetAvatar.name)
-    else if (configuration.images.output_resolutions.includes(size))
+    else if (
+        configuration.images.output_resolutions.includes(size) ||
+        bypass_size_limits
+    )
         return makeMissing() // generate image at this size for the specified format
 }
 
