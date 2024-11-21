@@ -47,6 +47,10 @@ export const actions = {
             (await request.formData()).entries()
         )
 
+        const editingCurrentAvatar = await prisma.user.findUnique({
+            where: { userId: user.sub, currentAvatarId: id },
+        })
+
         let data = {
             altText: altText instanceof File ? undefined : altText,
             source: source instanceof File ? undefined : source,
@@ -63,11 +67,13 @@ export const actions = {
             await deleteAvatar(id)
         }
 
-        // execute webhooks
-        executeHooksForUser(
-            user.sub,
-            sanitizeAvatar(action == "Save" ? { id, ...data } : null)
-        )
+        // make sure they're editing the current avatar
+        if (editingCurrentAvatar)
+            // execute webhooks
+            executeHooksForUser(
+                user.sub,
+                sanitizeAvatar(action == "Save" ? { id, ...data } : null)
+            )
 
         return redirect(302, "/set")
     },
