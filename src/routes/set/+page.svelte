@@ -1,131 +1,98 @@
 <script lang="ts">
-	import type { User } from "$lib/types";
-	import FilePreviewSet from "./FilePreviewSet.svelte";
+	import StatusBanner from "$lib/components/StatusBanner.svelte";
+    import type { User } from "$lib/types";
+    import type { Avatar } from "@prisma/client";
+    import editIcon from "@fluentui/svg-icons/icons/pen_16_regular.svg?raw"
 
-    export let data: {
-        user: User,
-        url: string,
-        avatar: {
-            altText: string,
-            source: string,
-            default: boolean
-        }
-        allowedImageTypes: string[], 
-        renderSizes: number[]
-    };
-    export let form: { success: true, message: string } | { success: false, error: string } | undefined;
-    let files: FileList;
-    let fileSrc = `/avatar/${data.user.identifier}/`
-    
-    $: if (files && files.length >= 0) {
-        data.avatar.altText = "", data.avatar.source = "", data.avatar.default = false
-        fileSrc = URL.createObjectURL(files.item(0)!)
-    } else fileSrc = `/avatar/${data.user.identifier}/`
+    export interface Props {
+        data: {
+            user: User,
+            url: string,
+            avatars: (Avatar & {inUse: boolean})[]
+        };
+        form: { success: true, message: string } | { success: false, error: string } | undefined;
+    }
+	import FilePreviewSet from "$lib/components/FilePreviewSet.svelte";
+
+    let { data = $bindable(), form }: Props = $props();
 </script>
 
 <style>
     form {
-        flex-direction: column;
-    }
-    form, form > .buttons, form > .metadata {
         display: flex;
-        gap: 10px;
-    }
-    form > .metadata {
+        justify-content: center;
+        gap: 1em;
         flex-wrap: wrap;
     }
-    form > .metadata > textarea {
-        height: 3em;
-        flex-grow: 1;
-        min-width: 15em;
-    }
-    form > .buttons {
-        justify-content: flex-end;
-    }
-    form input {
-        font-family: "Inter Variable", "Inter", sans-serif;
-    }
-    form > input[type="file"] {
-        flex-basis: 100%;
-        min-height: 1em;
-    }
-    form input[type="submit"], form input[type="file"] {
-        cursor: pointer;
-    }
-    form input[type="submit"], form input[type="file"], form textarea {
-        padding: 0.5em 1em;
+    input[type="submit"] {
+        width: 7em;
+        height: 7em;
+        aspect-ratio: 1 / 1;
         border-radius: 8px;
-        border: 1px solid var(--link);
-        color: var(--text);
-        background-color: var(--crust);
-    }
-    form textarea:disabled {
-        color: var(--link);
-    }
-    form > input[type="file"]::file-selector-button {
-        display: none;
-    }
-    summary::marker {
-        content: ""
-    }
-    summary {
-        color: var(--link);
+        border: none;
         cursor:pointer;
+        color: transparent;
     }
-    details > div {
-        border-left: 0.25em solid var(--link);
-        padding: 0 1em;
-        overflow-x: auto;
-        background-color: var(--crust);
-        width: calc( 100% - 2em );
+    .editButton {
+        border: 1px solid var(--crust);
+        padding: 5px;
+        aspect-ratio: 1 / 1;
+        border-radius: 8px;
+        cursor: pointer;
+        background-color: var(--background);
+        fill: var(--text);
+        width: 16px;
+        height: 16px;
+        display:flex; /* flex fixes everything! */
+        opacity: 0;
+        transition-duration: 150ms;
+        position: absolute;
+        left: 100%;
+        top: 5px;
+        transform: translateX(calc( -100% - 5px ))
+    }
+    .editButton:hover {
+        border: 1px solid var(--link)
+    }
+    .idiv:hover .editButton {
+        opacity: 1;
+    }
+    .idiv {
+        position: relative
+    }
+    /* keep editbutton visible on mobile */
+    @media (hover: none) {
+        .editButton {
+            opacity: 1
+        }
     }
 </style>
 
 <h1>Hi, {data.user.name}</h1>
-<p>
-    <details>
-        <summary>View user information...</summary>
-        <div>
-            <pre>{JSON.stringify(data.user, null, 4)}</pre>
-        </div>
-    </details>
-    <details>
-        <summary>Avatar URLs...</summary>
-        <div>
-            <ul>
-                {#each ["", ...data.renderSizes] as variant}
-                    <li>{new URL(`/avatar/${data.user.identifier}/${variant}`, data.url)}</li>
-                {/each}
-            </ul>
-        </div>
-    </details>
-</p>
-<form method="post" enctype="multipart/form-data">
-    <input type="file" bind:files={files} accept={data.allowedImageTypes.join(",")} name="newAvatar">
-    <div class="metadata">
-        <textarea name="altText" placeholder="Describe your image" disabled={data.avatar.default}>{data.avatar.altText}</textarea>
-        <textarea name="source" placeholder="Provide a source for your image" disabled={data.avatar.default}>{data.avatar.source}</textarea>
-    </div>
-    <div class="buttons">
-        <input type="submit" name="action" value="Save">
-        <input type="submit" name="action" value="Clear">
-    </div>
-</form>
+<br>
+<FilePreviewSet avatarUrl="/user/{data.user.identifier}/avatar" style="border-radius:8px;"  />
+<br>
+<FilePreviewSet avatarUrl="/user/{data.user.identifier}/avatar" style="border-radius:100%;" />
+<br>
 {#if form}
-    {#if form.success}
-        <details>
-            <summary><small>Avatar updated successfully</small></summary>
-            <div>
-                <pre>{form.message}</pre>
-            </div>
-        </details>
-    {:else}
-        <small>An error occurred: {form.error}</small>
-    {/if}
+    <StatusBanner status={form.success ? "success" : "error"}>{form.success ? form.message : form.error}</StatusBanner>
 {/if}
-{#key fileSrc}
-    <br>
-    <FilePreviewSet avatarUrl={fileSrc} style="border-radius:8px;"  />
-    <br>
-    <FilePreviewSet avatarUrl={fileSrc} style="border-radius:100%;" />
-{/key}
+<h2>Your avatars</h2>
+<form method="post">
+    {#each data.avatars as avatar}
+        <div class="idiv">
+            <input type="submit" name="action" value={"Set:"+avatar.id} aria-label={avatar.altText || "No alt text set"} style:background="center / cover no-repeat url('/avatars/{avatar.id}/image')" data-in-use={avatar.inUse} />
+            <a href="/avatars/{avatar.id}" aria-label="Edit" class="editButton">
+                {@html editIcon.replace("svg", "svg style=\"width: 16px; height: 16px;\"")}
+            </a>
+        </div>
+    {/each}
+    <input type="submit" name="action" value="Clear" aria-label="Default avatar" style:background="center / cover no-repeat url('/avatars/default/image')" />
+</form>
+<footer>
+    <a href="/new">Add new avatar</a>
+    &bullet;
+    <a href="/webhooks">Webhooks</a>
+    &bullet;
+    <a href="/user/{data.user.identifier}" target="_blank">See user page</a>
+</footer>

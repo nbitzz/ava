@@ -3,7 +3,13 @@
     import "@fontsource-variable/noto-sans-mono"
     import ava from "../assets/ava_icon.svg?raw"
 	import type { User } from "$lib/types";
-    export let data: { user?: User };
+	import type { Snippet } from "svelte";
+    interface Props {
+        data: { user?: User };
+        children?: Snippet;
+    }
+
+    let { data, children }: Props = $props();
 
     const buildName = `${__APP_NAME__} ${__APP_VERSION__}`
 </script>
@@ -15,15 +21,23 @@
             --link: #333;
             --background: white;
             --crust: #eee;
+            --red: #d20f39;
+            --yellow: #df8e1d;
+            --green: #40a02b;
         }
+
         @media (prefers-color-scheme:dark) {
             :root {
                 --text: white;
                 --link: #aaa;
                 --background: #111;
                 --crust: #333;
+                --red: #f38ba8;
+                --yellow: #f9e2af;
+                --green: #a6e3a1
             }
         }
+        
         html {
             background: var(--background);
         }
@@ -64,20 +78,17 @@
         }
     </style>
 </svelte:head>
-<body>
+<nav>
+    <a href="/">{@html ava}</a>
+    <a href="/set">Set avatar</a>
+    {#if data.user}
+        <a href="/logout">Log out</a>
+    {/if}
+</nav>
 
-    <nav>
-        <a href="/">{@html ava}</a>
-        <a href="/set">Set avatar</a>
-        {#if data.user}
-            <a href="/logout">Log out</a>
-        {/if}
-    </nav>
-    
-    <slot />
+{@render children?.()}
 
-    <footer>
-        {import.meta.env.DEV ? "[DEV]" : ""}
-        {buildName}
-    </footer>
-</body>
+<footer>
+    {import.meta.env.DEV ? "[DEV]" : ""}
+    {buildName}
+</footer>

@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-1.1.x"]
 }
 
@@ -12,23 +12,47 @@ datasource db {
 }
 
 model Token {
-  id String @id @unique @default(uuid())
-  owner String
-  token String
+  id           String  @id @unique @default(uuid())
+  owner        String
+  token        String
   refreshToken String?
 }
 
 model User {
-  userId String @id @unique
-  identifier String
-  name String?
-  avatar Avatar?
+  userId      String       @id @unique
+  identifier  String
+  name        String?
+  avatars     Avatar[]
+  webhooks    Webhook[]
+  emailHashes EmailHashes?
+
+  currentAvatarId String? @unique
+  currentAvatar   Avatar? @relation("CurrentAvatar", fields: [currentAvatarId], references: [id])
 }
 
 model Avatar {
-  id String @id @unique @default(uuid())
-  user User @relation(fields: [userId], references: [userId])
-  userId String @unique
+  id     String @id @unique @default(uuid())
+  user   User   @relation(fields: [userId], references: [userId])
+  userId String
+
+  usedBy User? @relation("CurrentAvatar")
+
   altText String?
-  source String?
+  source  String?
+}
+
+model Webhook {
+  userId  String
+  user    User    @relation(fields: [userId], references: [userId])
+  url     String
+  enabled Boolean @default(true)
+
+  @@unique([url, userId])
+}
+
+model EmailHashes {
+  forUserId String @id
+  user      User   @relation(fields: [forUserId], references: [userId])
+  sha256    Bytes
+  md5       Bytes
 }
