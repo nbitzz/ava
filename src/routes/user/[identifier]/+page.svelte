@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { URL_REGEX } from "$lib/common"
-import FilePreviewSet from "../../../lib/components/FilePreviewSet.svelte";
+    import FilePreviewSet from "$lib/components/FilePreviewSet.svelte";
 
     interface Props {
         data: {
