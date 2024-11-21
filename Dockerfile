@@ -9,7 +9,7 @@ RUN cd /temp/dev && npm install
 
 RUN mkdir -p /temp/prod
 COPY package.json package-lock.json /temp/prod/
-RUN cd /temp/prod && npm install --omit dev
+RUN cd /temp/prod && npm install --omit dev --include=optional
 
 FROM base AS prisma
 COPY --from=install /temp/prod/node_modules node_modules
