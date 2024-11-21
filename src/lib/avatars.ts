@@ -6,6 +6,7 @@ import configuration from "./configuration"
 import Sharp, { type FormatEnum } from "sharp"
 import type { Avatar } from "@prisma/client"
 import { randomUUID } from "node:crypto"
+import { env } from "$env/dynamic/private"
 
 // todo: make customizable
 export const avatarDirectory = "./.data/avatars"
@@ -338,7 +339,10 @@ export async function executeHooksForUser(
     hooks.forEach(async hook =>
         fetch(hook.url, {
             method: "POST",
-            body: JSON.stringify(payload),
+            body: JSON.stringify({
+                ...payload,
+                host: env.ORIGIN,
+            }),
         }).catch(e =>
             console.error(
                 `error executing webhook ${hook.url} for userid ${userId}:`,

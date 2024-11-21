@@ -91,6 +91,7 @@ URLs added to this page will be sent a POST request with the following payload w
 <pre>
 {`{
     "id": string
+    "host": string
     "altText": string
     "source": string
     "default": boolean
