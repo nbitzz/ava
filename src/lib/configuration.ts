@@ -1,7 +1,7 @@
 import Sharp, { type FormatEnum } from "sharp"
 import { env } from "$env/dynamic/private"
 const stbool = (s: string) => {
-    switch (s.toLowerCase()) {
+    switch ((s || "").toLowerCase()) {
         case "1":
         case "y":
         case "yes":
