@@ -1,5 +1,6 @@
 <script lang="ts">
-	import FilePreviewSet from "../../../lib/components/FilePreviewSet.svelte";
+	import { URL_REGEX } from "$lib/common"
+import FilePreviewSet from "../../../lib/components/FilePreviewSet.svelte";
 
     interface Props {
         data: {
@@ -44,7 +45,14 @@
 <h2>Source</h2>
 <p>
     {#if data.source}
-        {data.source}
+        {@html 
+            data.source
+                .replace(/\</g,"&lt;")
+                .replace(/\>/g,"&gt;")
+                .replace(URL_REGEX, (match) => `<a style="color:var(--text)" target="_blank" href=\"${match.replace(/\&/g,"<uamp>") /*lol*/}\">${match}</a>`)
+                .replace(/\&/g,"&amp;")
+                .replace(/\<uamp\>/g,"&")
+        }
     {:else}
         <em>No source available</em>
     {/if}
