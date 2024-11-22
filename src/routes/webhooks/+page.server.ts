@@ -30,8 +30,12 @@ export const actions = {
 
         if (!url || url instanceof File)
             return fail(400, { error: "no url supplied" })
-        if (url.match(URL_REGEX)?.[0] !== url)
+
+        try {
+            new URL(url)
+        } catch {
             return fail(400, { error: "bad url" })
+        }
 
         url = new URL(url).toString()
 
