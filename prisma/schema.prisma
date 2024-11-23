@@ -57,7 +57,7 @@ model EmailHashes {
   forUserId String
   user      User   @relation(fields: [forUserId], references: [userId])
 
-  email  String @unique @default("unknown:${uuid()}")
+  email  String @unique @default(uuid())
   sha256 Bytes
   md5    Bytes
 
