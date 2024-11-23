@@ -82,6 +82,7 @@
     <a href="/">{@html ava}</a>
     <a href="/set">Set avatar</a>
     {#if data.user}
+    <a href="/user/{data.user.identifier}">Public page</a>
         <a href="/logout">Log out</a>
     {/if}
 </nav>

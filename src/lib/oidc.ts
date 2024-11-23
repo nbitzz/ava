@@ -126,20 +126,6 @@ export async function getUserInfo(id: string) {
 
         userInfo = await userInfoRequest.json()
 
-        // get emailHashes
-
-        let emailHashes: Omit<EmailHashes, "forUserId"> | undefined = undefined
-
-        if (userInfo.email) {
-            emailHashes = {
-                sha256: crypto
-                    .createHash("sha256")
-                    .update(userInfo.email)
-                    .digest(),
-                md5: crypto.createHash("md5").update(userInfo.email).digest(),
-            }
-        }
-
         // update user
         await prisma.user.upsert({
             where: {
@@ -148,30 +134,53 @@ export async function getUserInfo(id: string) {
             update: {
                 identifier: userInfo[configuration.userinfo.identifier],
                 name: userInfo.name,
-                ...(emailHashes
-                    ? {
-                          emailHashes: {
-                              upsert: {
-                                  create: emailHashes,
-                                  update: emailHashes,
-                              },
-                          },
-                      }
-                    : {}),
             },
             create: {
                 userId: userInfo.sub,
                 identifier: userInfo[configuration.userinfo.identifier],
                 name: userInfo.name,
-                ...(emailHashes
-                    ? {
-                          emailHashes: {
-                              create: emailHashes,
-                          },
-                      }
-                    : {}),
             },
         })
+
+        // get emailHashes
+
+        let emailHashes: Omit<EmailHashes, "id"> | undefined = undefined
+
+        if (userInfo.email) {
+            emailHashes = {
+                sha256: crypto
+                    .createHash("sha256")
+                    .update(userInfo.email)
+                    .digest(),
+                md5: crypto.createHash("md5").update(userInfo.email).digest(),
+                email: userInfo.email,
+                isPrimaryForUserId: userInfo.sub,
+                forUserId: userInfo.sub,
+            }
+
+            // manual upsert here so we can use findFirst
+
+            let f = await prisma.emailHashes.findFirst({
+                where: {
+                    OR: [
+                        {
+                            isPrimaryForUserId: userInfo.sub,
+                        },
+                        {
+                            sha256: emailHashes.sha256,
+                            md5: emailHashes.md5,
+                        },
+                    ],
+                },
+            })
+
+            await (f
+                ? prisma.emailHashes.update({
+                      where: { id: f.id },
+                      data: emailHashes,
+                  })
+                : prisma.emailHashes.create({ data: emailHashes }))
+        }
 
         // cache userinfo
         userInfoCache.set(tokenInfo.owner, userInfo)

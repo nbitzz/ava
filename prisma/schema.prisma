@@ -19,12 +19,13 @@ model Token {
 }
 
 model User {
-  userId      String       @id @unique
-  identifier  String
-  name        String?
-  avatars     Avatar[]
-  webhooks    Webhook[]
-  emailHashes EmailHashes?
+  userId       String        @id @unique
+  identifier   String
+  name         String?
+  avatars      Avatar[]
+  webhooks     Webhook[]
+  emailHashes  EmailHashes[]
+  primaryEmail EmailHashes?  @relation("PrimaryEmail")
 
   currentAvatarId String? @unique
   currentAvatar   Avatar? @relation("CurrentAvatar", fields: [currentAvatarId], references: [id])
@@ -51,8 +52,17 @@ model Webhook {
 }
 
 model EmailHashes {
-  forUserId String @id
+  id String @id @default(uuid())
+
+  forUserId String
   user      User   @relation(fields: [forUserId], references: [userId])
-  sha256    Bytes
-  md5       Bytes
+
+  email  String @unique @default("unknown:${uuid()}")
+  sha256 Bytes
+  md5    Bytes
+
+  isPrimaryForUserId String? @unique
+  isPrimaryFor       User?   @relation("PrimaryEmail", fields: [isPrimaryForUserId], references: [userId])
+
+  @@unique([sha256, md5])
 }

@@ -94,5 +94,5 @@
     &bullet;
     <a href="/webhooks">Webhooks</a>
     &bullet;
-    <a href="/user/{data.user.identifier}" target="_blank">See user page</a>
+    <a href="/emails">Emails</a>
 </footer>
